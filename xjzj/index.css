@@ -1,0 +1,66 @@
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #faf8ef;
+  }
+.container {
+
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#game {
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+}
+
+.cell {
+    width: 20px;
+    height: 20px;
+    border: 1px solid black;
+}
+
+#steps-container {
+    margin-top: 10px;
+}
+
+.circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid black;
+    margin: 5px;
+    text-align: center;
+    line-height: 20px;
+}
+.steps-container {
+    display: flex;
+    justify-content: space-around;
+}
+select {
+    margin: 20px; 
+}
+#steps {
+    margin: 20px; 
+}
+
+.button {
+    font-size: 18px;
+    margin-top: 5px;
+    background-color: #8f7a66;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .button:hover {
+    background-color: #9f8b77;
+  }

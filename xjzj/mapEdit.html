@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地图编辑器</title>
+    <link rel="stylesheet" href="./index.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        #editor {
+            display: grid;
+            grid-gap: 5px;
+            background-color: #bbada0;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            background-color: rgba(238, 228, 218, 0.35);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .cell:hover {
+            background-color: rgba(238, 228, 218, 0.6);
+        }
+
+        .button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #8f7a66;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #9f8b77;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="editor"></div>
+    <div class="button-container">
+        <button class="button" id="clear-button" onclick="window.location.href = './index.html'">返回</button>
+        <button class="button" id="set-wall">设置墙壁</button>
+        <button class="button" id="set-entry">设置入口</button>
+        <button class="button" id="set-exit">设置出口</button>
+        <button class="button" id="save-button">保存地图</button>
+        <button class="button" id="clear-button">清空地图</button>
+    </div>
+    <script type="module">
+        // 询问用户输入行数和列数
+        let rows = parseInt(prompt("请输入地图的行数：", 5));
+        let cols = parseInt(prompt("请输入地图的列数：", 10));
+
+        // 确保输入为有效的正整数
+        if (isNaN(rows) || rows <= 0) rows = 5;
+        if (isNaN(cols) || cols <= 0) cols = 10;
+
+        // 初始化地图
+        let map = Array.from({ length: rows }, () => Array(cols).fill(0));
+        let currentSetting = 0; // 0: 无设置，-1: 墙壁，-2: 入口，-9: 出口
+        let entrySet = false;
+        let exitSet = false;
+
+        // 将边缘设置为墙壁
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                if (i === 0 || i === rows - 1 || j === 0 || j === cols - 1) {
+                    map[i][j] = -1;
+                }
+            }
+        }
+
+        // 获取编辑器元素
+        const editor = document.getElementById('editor');
+
+        // 渲染地图
+        function renderMap() {
+            editor.innerHTML = '';
+            editor.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+
+                    // 根据不同的值设置背景颜色
+                    switch (map[i][j]) {
+                        case -1:
+                            cell.style.backgroundColor = 'gray';
+                            break;
+                        case -2:
+                            cell.style.backgroundColor = 'blue';
+                            break;
+                        case -9:
+                            cell.style.backgroundColor = 'green';
+                            break;
+                        case 0:
+                            cell.style.backgroundColor = 'white';
+                            break;
+                    }
+
+                    cell.addEventListener('click', () => {
+                        const row = parseInt(cell.dataset.row);
+                        const col = parseInt(cell.dataset.col);
+
+                        // 边缘不能设置为 0
+                        if ((row === 0 || row === rows - 1 || col === 0 || col === cols - 1) && currentSetting === 0) {
+                            return;
+                        }
+
+                        // 处理非空地再次点击取消设置
+                        if (map[row][col]!== 0) {
+                            if (map[row][col] === -2) {
+                                entrySet = false;
+                            } else if (map[row][col] === -9) {
+                                exitSet = false;
+                            }
+                            map[row][col] = 0;
+                            renderMap();
+                            return;
+                        }
+
+                        // 入口和出口各只能设置一个
+                        if (currentSetting === -2 && entrySet) {
+                            alert('入口已设置，不能再设置！');
+                            return;
+                        }
+                        if (currentSetting === -9 && exitSet) {
+                            alert('出口已设置，不能再设置！');
+                            return;
+                        }
+
+                        if (currentSetting!== 0) {
+                            if (currentSetting === -2) {
+                                entrySet = true;
+                            } else if (currentSetting === -9) {
+                                exitSet = true;
+                            }
+                            map[row][col] = currentSetting;
+                            renderMap();
+                        }
+                    });
+
+                    editor.appendChild(cell);
+                }
+            }
+        }
+
+        // 保存地图
+        function saveMap() {
+            if (!entrySet || !exitSet) {
+                alert('请确保入口和出口都已设置！');
+                return;
+            }
+            // 询问所需步数
+            let stepsNum = parseInt(prompt("请输入所需步数：", 3));
+            // 确保输入为有效的正整数
+            if (isNaN(stepsNum) || stepsNum <= 0) {
+                stepsNum = 3;
+            }
+            const mapData = {
+                map: map,
+                stepsNum: stepsNum
+            };
+
+            // 将地图数据保存到本地存储
+            localStorage.setItem('customMap', JSON.stringify(mapData));
+            alert('地图已保存！');
+
+            // 弹出 JSON 内容并允许复制
+            const jsonContent = JSON.stringify(mapData, null, 2);
+            const textarea = document.createElement('textarea');
+            textarea.value = jsonContent;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alert(`以下是保存的地图 JSON 内容，已自动复制到剪贴板：\n\n${jsonContent.toString().replaceAll(' ','').replaceAll('\n','')}`);
+        }
+
+        // 清空地图
+        function clearMap() {
+            map = Array.from({ length: rows }, () => Array(cols).fill(0));
+            // 重新将边缘设置为墙壁
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    if (i === 0 || i === rows - 1 || j === 0 || j === cols - 1) {
+                        map[i][j] = -1;
+                    }
+                }
+            }
+            entrySet = false;
+            exitSet = false;
+            renderMap();
+        }
+
+        // 设置墙壁按钮点击事件
+        document.getElementById('set-wall').addEventListener('click', () => {
+            currentSetting = -1;
+        });
+
+        // 设置入口按钮点击事件
+        document.getElementById('set-entry').addEventListener('click', () => {
+            currentSetting = -2;
+        });
+
+        // 设置出口按钮点击事件
+        document.getElementById('set-exit').addEventListener('click', () => {
+            currentSetting = -9;
+        });
+
+        // 初始化地图
+        renderMap();
+
+        // 添加保存和清空按钮的事件监听器
+        const saveButton = document.getElementById('save-button');
+        saveButton.addEventListener('click', saveMap);
+
+        const clearButton = document.getElementById('clear-button');
+        clearButton.addEventListener('click', clearMap);
+    </script>
+</body>
+
+</html>
