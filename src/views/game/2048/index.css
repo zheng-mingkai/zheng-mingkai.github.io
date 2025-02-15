@@ -1,0 +1,15 @@
+.container-2048 {
+  background-color: #faf8ef;
+  margin: 0;
+  height: 100%;
+}
+.game-container {
+
+}
+.game-cell {
+    /* 可以在这里添加单元格的样式 */
+    width: 50px;
+    height: 50px;
+    border: 1px solid #ccc;
+    display: inline-block;
+}
